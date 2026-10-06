@@ -1,0 +1,38 @@
+services:
+  backend:
+  #
+
+  db:
+    image: postgres:16.0
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_DB: ${DB_NAME}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -U $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+      
+  migrate:
+    image: migrate/migrate:v4.17.1
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+    - ./migrations:/migrations
+    command: [
+      "-path", "/migrations",
+      "-database", "postgres://${DB_USER}:${DB_PASS}@db:5432/${DB_NAME}?sslmode=disable",
+      "up"
+    ]
+    
+
+volumes:
+  db-data:
+    
+
