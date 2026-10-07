@@ -8,6 +8,8 @@ import (
 func main() {
 	// todo INIT CONFID cleanenv
 
+	cfg := config.Mustload()
+
 	// loger: log/slog
 
 	logger := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
@@ -16,7 +18,8 @@ func main() {
 
 	// init storage : postgresql
 
+	pg := pgx.
+
 	// router: gin
 
-	// loger: log/slog
 }
