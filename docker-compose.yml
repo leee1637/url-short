@@ -9,7 +9,7 @@ services:
     environment:
       HTTP_SERVER_ADDRESS: ${HTTP_ADDR}
       APP_ENV: ${APP_ENV} 
-      DB_HOST: ${DB_HOST}
+      DB_HOST: db
       DB_PORT: ${DB_PORT}
       DB_USER: ${DB_USER}
       DB_PASS: ${DB_PASS}
@@ -21,6 +21,8 @@ services:
 
   db:
     image: postgres:16.0
+    ports:
+      - "${DB_PORT}:5432"
     environment:
       POSTGRES_PASSWORD: ${DB_PASS}
       POSTGRES_USER: ${DB_USER}
