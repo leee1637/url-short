@@ -1,6 +1,23 @@
 services:
   backend:
-  #
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      HTTP_SERVER_ADDRESS: ${HTTP_ADDR}
+      APP_ENV: ${APP_ENV} 
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_USER: ${DB_USER}
+      DB_PASS: ${DB_PASS}
+      DB_NAME: ${DB_NAME}
+      AUTH_USER: ${AUTH_USER}
+      AUTH_PASS: ${AUTH_PASS}
+    ports:
+      - "${APP_PORT}:8080"
 
   db:
     image: postgres:16.0
@@ -9,7 +26,7 @@ services:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_DB: ${DB_NAME}
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -U $${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -24,7 +41,7 @@ services:
       db:
         condition: service_healthy
     volumes:
-    - ./migrations:/migrations
+      - ./migrations:/migrations
     command: [
       "-path", "/migrations",
       "-database", "postgres://${DB_USER}:${DB_PASS}@db:5432/${DB_NAME}?sslmode=disable",

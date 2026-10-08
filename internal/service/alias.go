@@ -22,9 +22,6 @@ func GenerateAlias() string {
 func AliasValidate(s string) error {
 	n := utf8.RuneCountInString(s)
 
-	if n == 0 {
-		return fmt.Errorf("%w: alias is empty", domain.ErrValidation)
-	}
 	if n > 20 {
 		return fmt.Errorf("%w: alias too long", domain.ErrValidation)
 	}
