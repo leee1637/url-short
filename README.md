@@ -14,14 +14,14 @@
 ## Быстрый старт
 
 ```bash
-git clone <repo-url>
+git clone github.com/leee1637/url-short
 cd url-short
 
 cp .env.example .env
 docker compose up
 ```
 
-Сервис доступен на `http://localhost:8080`.
+Сервис доступен на `http://localhost:8888`.
 
 ### Только локальная разработка (без контейнера бэкенда)
 
@@ -38,7 +38,7 @@ go run ./cmd/url-short
 | Переменная | Значение по умолчанию | Описание |
 |---|---|---|
 | `APP_ENV` | `local` | режим окружения (`local` / `production`) |
-| `HTTP_ADDR` | `:8080` | адрес HTTP-сервера |
+| `HTTP_ADDR` | `:8888` | адрес HTTP-сервера |
 | `DB_HOST` | `localhost` | хост Postgres |
 | `DB_PORT` | `5432` | порт Postgres |
 | `DB_USER` | `shorter` | пользователь БД |

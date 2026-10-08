@@ -1,2 +1,1 @@
-DROP INDEX IF EXISTS idx_alias;
 DROP TABLE IF EXISTS urls;

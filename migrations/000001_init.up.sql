@@ -6,5 +6,3 @@ CREATE TABLE IF NOT EXISTS urls (
     update_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     delete_at TIMESTAMPTZ
 );
-
-CREATE INDEX IF NOT EXISTS idx_alias ON urls(alias);   

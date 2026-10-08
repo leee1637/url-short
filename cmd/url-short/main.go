@@ -2,8 +2,12 @@ package main
 
 import (
 	"context"
+	"errors"
 	"log/slog"
+	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 	"url-short/internal/config"
 	"url-short/internal/handler"
@@ -11,6 +15,7 @@ import (
 	"url-short/internal/storage"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/joho/godotenv"
 )
 
 func main() {
@@ -20,6 +25,8 @@ func main() {
 	// 4. service: service.New(repo, logger)
 	// 5. handler: handler.New(svc) -> h.Router(cfg.Auth, logger)
 	// 6. http.Server + graceful shutdown
+
+	_ = godotenv.Load(".env")
 
 	cfg := config.MustLoad()
 
@@ -33,9 +40,14 @@ func main() {
 	defer cancel()
 
 	pool, err := pgxpool.New(ctxTime, cfg.Postgres.DSN())
-
 	if err != nil {
 		logger.Error("failed to connect to db", slog.Any("error", err))
+		os.Exit(1)
+	}
+
+	err = pool.Ping(ctxTime)
+	if err != nil {
+		logger.Error("failed to ping to db", slog.Any("error", err))
 		os.Exit(1)
 	}
 
@@ -47,10 +59,34 @@ func main() {
 
 	r := h.Router(cfg.Auth, logger)
 
-	logger.Info("server starting", slog.String("addr", cfg.HTTPServer.Addr))
-	if err := r.Run(cfg.HTTPServer.Addr); err != nil {
-		logger.Error("server failed", slog.Any("error", err))
-		os.Exit(1)
+	srv := &http.Server{
+		Addr:    cfg.HTTPServer.Addr,
+		Handler: r, // gin.Engine реализует http.Handler
 	}
+
+	go func() {
+		logger.Info("server starting", slog.String("addr", cfg.HTTPServer.Addr))
+		err := srv.ListenAndServe()
+		if err != nil && (!errors.Is(err, http.ErrServerClosed)) {
+			logger.Error("server failed", slog.Any("error", err))
+			os.Exit(1)
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+
+	logger.Info("shutting down server...")
+
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer shutdownCancel()
+
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		logger.Error("server forced to shutdown", slog.Any("error", err))
+	}
+
+	logger.Info("server stopped")
 
 }
