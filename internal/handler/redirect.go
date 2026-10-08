@@ -11,9 +11,9 @@ func (h *Handler) Redirect(g *gin.Context) {
 
 	url, err := h.svc.GetUrlByAlias(g.Request.Context(), alias)
 	if err != nil {
-		wtiterErr(g, err)
+		writeErr(g, err)
 		return
 	}
 
-	g.Redirect(http.StatusMovedPermanently, url.OriginalURL)
+	g.Redirect(http.StatusFound, url.OriginalURL)
 }

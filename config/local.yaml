@@ -1,0 +1,12 @@
+env: "local"
+
+http_server:
+  addr: ":8080"
+
+postgres:
+  host: "localhost"
+  port: 5432
+
+auth:
+  user: "admin"
+  pass: "admin123"

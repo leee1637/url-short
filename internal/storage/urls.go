@@ -22,9 +22,6 @@ func (p *Postgres) Save(ctx context.Context, url *domain.URL) error {
 
 	row, err := p.pool.Exec(ctx, query, url.OriginalURL, url.Alias)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return domain.ErrNotFound
-		}
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
 			return domain.ErrConflict
@@ -50,10 +47,6 @@ func (p *Postgres) GetByAlias(ctx context.Context, alias string) (*domain.URL, e
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, domain.ErrNotFound
 		}
-		var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
-			return nil, domain.ErrConflict
-		}
 		return nil, fmt.Errorf("db: %w", err)
 	}
 	return &d, nil
@@ -64,39 +57,25 @@ func (p *Postgres) DeleteByAlias(ctx context.Context, alias string) error {
 
 	row, err := p.pool.Exec(ctx, query, alias)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return domain.ErrNotFound
-		}
-		var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
-			return domain.ErrConflict
-		}
 		return fmt.Errorf("db: %w", err)
 	}
 	if row.RowsAffected() == 0 {
-		return fmt.Errorf("Было задествовано 0 сторк")
+		return fmt.Errorf("delete: %w", domain.ErrNotFound)
 	}
 
 	return nil
 }
 
 func (p *Postgres) UpdateURLByAlias(ctx context.Context, newURL string, alias string) error {
-	query := `UPDATE urls SET original_url = $1 WHERE alias = $2`
+	query := `UPDATE urls SET original_url = $1, update_at = NOW() WHERE alias = $2`
 
 	row, err := p.pool.Exec(ctx, query, newURL, alias)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return domain.ErrNotFound
-		}
-		var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
-			return domain.ErrConflict
-		}
 		return fmt.Errorf("db: %w", err)
 	}
 
 	if row.RowsAffected() == 0 {
-		return fmt.Errorf("Было задествовано 0 сторк")
+		return fmt.Errorf("update: %w", domain.ErrNotFound)
 	}
 
 	return nil

@@ -1,6 +1,10 @@
 package config
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/ilyakaznacheev/cleanenv"
+)
 
 type Config struct {
 	Env        string     `yaml:"env" env:"APP_ENV"`

@@ -6,8 +6,8 @@ type Postgres struct {
 	pool *pgxpool.Pool
 }
 
-func NewPostgresPool(pool *pgxpool.Pool) Postgres {
-	return Postgres{
+func NewPostgresPool(pool *pgxpool.Pool) *Postgres {
+	return &Postgres{
 		pool: pool,
 	}
 }
